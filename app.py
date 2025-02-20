@@ -11,7 +11,7 @@ st.set_page_config(
         page_icon="🤖",
         layout="wide"
     )
-
+# Hiding the header and footer
 st.markdown("""
     <style>
         /* Hide the Streamlit header */
@@ -27,13 +27,6 @@ st.markdown("""
 
 OLLAMA_API_BASE = "http://localhost:11434"
 
-# def load_models() -> list[str]:
-    # try:
-        # with open('models.txt', 'r') as f:
-            # return [line.strip() for line in f if line.strip()]
-    # except FileNotFoundError:
-        # return ["deepseek-r1:1.5b"]
-
 # history file 
 HISTORY_FILE = "chat_history.json"
 
@@ -45,18 +38,27 @@ def save_chat_history():
     with open(HISTORY_FILE, "w") as f:
         json.dump(st.session_state.messages, f)
 
+# Loads chat history from history json file
 def load_chat_history():
     if os.path.exists(HISTORY_FILE):
         with open(HISTORY_FILE, "r") as f:
             st.session_state.messages = json.load(f)
     else:
         st.session_state.messages = []
-        
+
+# def load_models() -> list[str]:
+    # try:
+        # with open('models.txt', 'r') as f:
+            # return [line.strip() for line in f if line.strip()]
+    # except FileNotFoundError:
+        # return ["deepseek-r1:1.5b"]        
+
 # loading from the apis
 def load_models() -> list[str]:
     response = requests.get(f"{OLLAMA_API_BASE}/api/tags")
     return [model["name"] for model in response.json()["models"]]
 
+# Generating stream of respons from the Ollama APIs
 def generate_stream(prompt: str, model: str) -> Iterator[str]:
     response = requests.post(
         f"{OLLAMA_API_BASE}/api/generate",
@@ -76,6 +78,7 @@ def generate_stream(prompt: str, model: str) -> Iterator[str]:
             if json_response.get('done', False):
                 break
 
+# Extracting the reasoning data and response
 def extract_thinking_and_response(text: str) -> tuple[str, str]:
     think_start = text.find("<think>")
     think_end = text.find("</think>")
@@ -87,6 +90,7 @@ def extract_thinking_and_response(text: str) -> tuple[str, str]:
     
     return "", text
 
+# Gets the suggested prompts based on the tone of communication
 def get_suggested_prompts(tone: str):
     """Return a list of suggested prompts based on the selected tone."""
     prompts = {
@@ -117,11 +121,16 @@ def get_suggested_prompts(tone: str):
     }
     return prompts.get(tone, ["Ask me anything! 😊"])  # Default if tone is missing
 
+# main function
 def main():
     
     load_chat_history()
     
     col1, col2, col3 = st.columns([3, 2, 1])
+
+    with col1:
+        available_models = load_models()
+        selected_model = st.selectbox("Choose a model", available_models, index=0,label_visibility='collapsed',)
 
     with col2:
         option_map = {
@@ -151,10 +160,6 @@ def main():
             st.session_state.messages = []
             save_chat_history()
             st.rerun()    
-
-    with col1:
-        available_models = load_models()
-        selected_model = st.selectbox("Choose a model", available_models, index=0,label_visibility='collapsed',)
 
     # Check if a suggested prompt was selected
     if "selected_prompt" in st.session_state:
@@ -222,6 +227,7 @@ def main():
                     progress_bar.empty()  # Remove progress bar in case of error
     else :
         if pre_filled_prompt :
+            # if there is a prefilled prompt [prbably on prompt selection], go ahead with the prompt as user input
             prompt = pre_filled_prompt
             st.session_state.messages.append({"role": "user", "content": prompt})
             with st.chat_message("user"):
@@ -267,6 +273,7 @@ def main():
 if __name__ == "__main__":
     main()
 
+# Suggested prompts are to be displayed based on tone
 st.markdown("**💡 Try one of these prompts:**")
 suggested_prompts = get_suggested_prompts(st.session_state["selected_tone"])
 
