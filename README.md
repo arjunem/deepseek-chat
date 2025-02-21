@@ -5,6 +5,12 @@ A dynamic **AI-powered chatbot** built with **Streamlit**, integrating the **Oll
 
 ---
 
+![image](https://github.com/user-attachments/assets/be216bbf-ab74-466e-95a8-67f005569971)
+
+![image](https://github.com/user-attachments/assets/69bb98b2-854a-4c39-964f-90735ee28020)
+
+
+
 ## ✨ **Features**  
 
 ### 🎨 **User Interface & Customization**  
